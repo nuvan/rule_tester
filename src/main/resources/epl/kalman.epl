@@ -1,0 +1,105 @@
+@Name('model error')
+create variable double r = 0.4;
+@Name('measure error')
+create variable double q = 0.003;
+
+@Name('trade sym schema')
+@Tag(name='debug',value='true')
+create schema TradeSymTick(trade_sym string, price double, puid long);
+
+@Name('trade sym schema')
+@Tag(name='debug',value='true')
+create window TradeSymTicks.win:length(4) as TradeSymTick;
+
+@Name('trade sym error schema')
+@Tag(name='debug',value='true')
+create schema TradeSymError(trade_sym string, error double);
+
+@Name('trade sym gain schema')
+create window TradeSymGain.win:length(4) (trade_sym string, gain double);
+
+@Name('Trade sym predictions.')
+@Description('Contains first three bootstrap values and subsequent prediction.')
+create window TradeSymPredict.win:length(4) as TradeSymTick;
+
+@Name('Trade sym predictions.')
+@Description('Contains first three bootstrap values and subsequent prediction.')
+@Tag(name='debug',value='true')
+create schema TradeSymPredictUpdate() copyfrom TradeSymTick;
+
+@Name('Trade sym prediction error.')
+@Description('Contains first three bootstrap values and subsequent prediction.')
+create window TradeSymPredictError.win:length(4) as TradeSymError;
+
+@Name('Trade sym prediction error.')
+@Description('Contains first three bootstrap values and subsequent prediction.')
+create window TradeSymPredictErrorUpdate.win:length(4) as TradeSymError;
+
+
+@Name('Forward from TradeSymTick to limited event window TradeSymTicks')
+@Tag(name='debug',value='true')
+on TradeSymTick
+insert into TradeSymTicks
+select *
+;
+
+@Name('Replicate bootstrap values')
+on TradeSymTick
+insert into TradeSymPredictUpdate
+select * where (select count(*) from TradeSymPredictUpdate.win:length(4))  < 3
+insert into TradeSymPredict
+select * where (select count(*) from TradeSymPredict) < 3
+output all;
+
+@Name('Predictions')
+@Tag(name='debug',value='true')
+insert into TradeSymPredict
+select
+	tsp.trade_sym as trade_sym,
+	tsp.puid as puid,
+	cast(3*(tsp.price - prev(1, tsp.price)) + prev(2, tsp.price), double) as price
+from TradeSymTicks unidirectional, TradeSymPredictUpdate.win:length(4) as tsp
+where (select count(*) from TradeSymPredictUpdate.win:length(4)) > 2
+;
+
+@Name('input dataflow')
+@Description('Random measures')
+@Tag(name='debug',value='true')
+insert into TradeSymPredictUpdate
+select 
+	trade_sym as trade_sym,
+	TradeSymPredict.lastof().puid as puid,
+	TradeSymPredict.lastof().price + TradeSymGain.lastof().gain*(TradeSymTicks.lastof().price - TradeSymPredict.lastof().price) as price
+from TradeSymPredict
+where (select count(*) from TradeSymPredict) > 2
+;
+
+@Name('Prediction Error')
+@Description('Random measures')
+@Tag(name='debug',value='true')
+insert into TradeSymPredictError
+select 
+	trade_sym as trade_sym,
+	TradeSymPredictErrorUpdate.lastof().error + q as error
+from TradeSymTicks
+;
+
+@Name('Predition update')
+@Description('Random measures')
+@Tag(name='debug',value='true')
+insert into TradeSymGain
+select 
+	trade_sym as trade_sym,
+	TradeSymPredictError.lastof().error*(1/(TradeSymPredictError.lastof().error + r)) as gain
+from TradeSymPredictError
+;
+
+@Name('Prediction Error')
+@Description('Random measures')
+@Tag(name='debug',value='true')
+insert into TradeSymPredictErrorUpdate
+select 
+	trade_sym as trade_sym,
+	(1-TradeSymGain.lastof().gain)*TradeSymPredictError.lastof().error + q as error
+from TradeSymGain
+;

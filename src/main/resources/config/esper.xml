@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<esper-configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.espertech.com/schema/esper"
+    xsi:noNamespaceSchemaLocation="esper-configuration-3-0.xsd">
+
+    <!-- <plugin-loader name="EsperJMX" class-name="com.espertech.esper.jmx.client.EsperJMXPlugin">
+    </plugin-loader> -->
+  <engine-settings>
+    <defaults>
+      <metrics-reporting enabled="true" engine-interval="900000" statement-interval="900000" threading="true"/>
+	  <expression udf-cache="false"/>
+    </defaults>
+  </engine-settings>
+
+  <plugin-singlerow-function name="genUniqueId" function-class="pt.esper.functions.Utils" function-method="genUniqueId" />
+
+</esper-configuration>

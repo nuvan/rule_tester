@@ -64,7 +64,6 @@ public class Loader {
         this.runtime                            = this.engineServiceProvider.getEPRuntime();
         ArrayList<Module> modules = new ArrayList<Module>();
         modules = checkEpl(this.eplFiles, deployAdmin);
-
         DeploymentOrder order = null;
         
         try {
@@ -114,7 +113,7 @@ public class Loader {
                 //Either dir does not exist or is not a directory
                 //Assuming that is an existing epl file
                 System.out.println("Esper::See epl file -> " + eplFile);
-                fullEplFiles.add(path + eplFile);
+                fullEplFiles.add(classLoader.getResource(eplFile).getPath());
             } else {
                 for (int i=0; i<children.length; i++) {
                     // Get filename of file or directory

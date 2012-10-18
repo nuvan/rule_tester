@@ -10,7 +10,7 @@ import org.apache.log4j.SimpleLayout;
 //Main entry point
 public class App 
 {
-	
+    
 	void initialize(String serviceName, String environment) throws Exception {
 	    // Initialize the Spring Manager, singleton
 	    SpringManager toSet = SpringManager.getInstance();
@@ -24,11 +24,7 @@ public class App
 		    System.out.println( "SpringManager Loaded Successfully");
 		    
     }
-	
-	private void setRuntimeContext() {
-	    //System.setProperty(ContextHelper.SERVER_CONTEXT_KEY, ServerInfo.getServerName());
-	}
-		
+			
     public static void main( String[] args )
     {
     	App mainProc 				= new App();
@@ -42,7 +38,6 @@ public class App
         System.out.println( "Starting Esper Loader" );
         
         try {
-          mainProc.setRuntimeContext();
           mainProc.initialize(primaryEngineName, environment);
           mainProc.start();
           

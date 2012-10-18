@@ -28,7 +28,6 @@ public class SpringManager {
   private static SpringManager instance;
   private static FileSystemXmlApplicationContext applicationContext;
   private boolean initialized = false;
-
  
   private SpringManager() {
 	  System.out.println("Spring Manager Created");

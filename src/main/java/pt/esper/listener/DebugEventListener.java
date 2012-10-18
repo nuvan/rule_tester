@@ -17,7 +17,7 @@ public class DebugEventListener implements UpdateListener {
         {
             for(EventBean newEvent : newEvents)
             {
-                System.out.println("Debug:" + dateFormat.format(Calendar.getInstance().getTime()) + ":" + newEvent.getEventType().getName() + "::" + newEvent.getUnderlying().toString() );
+                System.out.println("" + dateFormat.format(Calendar.getInstance().getTime()) + ":" + newEvent.getEventType().getName() + "::" + newEvent.getUnderlying().toString() );
             }
         }
     }
